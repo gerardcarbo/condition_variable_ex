@@ -76,4 +76,4 @@ int main(int n, char **args)
     }
     cout << "Failed: it should be " << desiredStatus << " and is " << finalStatus << "\n";
     return 1;
-}
+};
