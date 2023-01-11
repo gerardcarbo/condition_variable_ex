@@ -6,6 +6,35 @@
 
 using namespace gecaib;
 
+std::ostream &operator<<(std::ostream &out, const cv_status_ex value)
+{
+static std::map<cv_status_ex, std::string> strings;
+if (strings.size() == 0)
+{
+#define INSERT_ELEMENT(p) strings[p] = #p
+    INSERT_ELEMENT(cv_status_ex::timeout);
+    INSERT_ELEMENT(cv_status_ex::signaled);
+    INSERT_ELEMENT(cv_status_ex::predicate);
+#undef INSERT_ELEMENT
+}
+
+return out << strings[value];
+}
+
+std::ostream &operator<<(std::ostream &out, const cv_status value)
+{
+static std::map<cv_status, std::string> strings;
+if (strings.size() == 0)
+{
+#define INSERT_ELEMENT(p) strings[p] = #p
+    INSERT_ELEMENT(cv_status::timeout);
+    INSERT_ELEMENT(cv_status::no_timeout);
+#undef INSERT_ELEMENT
+}
+
+return out << strings[value];
+}
+
 std::mutex m;
 condition_variable_ex cv;
 std::mutex m_done;

@@ -25,4 +25,5 @@ Usually it's interesting to know if the wait has been abandoned because of the s
 
 ## How to compile
 
-For the library to compile the private members of condition_variable class must be made protected.
+- For the library to compile the private members of condition_variable class must be made protected.
+- g++ 10 or greater needed.

@@ -1,3 +1,6 @@
+#ifndef _GECAIB_CONDITION_VARIABLE_EX
+#define _GECAIB_CONDITION_VARIABLE_EX 1
+
 #include <condition_variable>
 #include <map>
 
@@ -12,36 +15,7 @@ namespace gecaib _GLIBCXX_VISIBILITY(default)
     predicate
   };
 
-  std::ostream &operator<<(std::ostream &out, const cv_status_ex value)
-  {
-    static std::map<cv_status_ex, std::string> strings;
-    if (strings.size() == 0)
-    {
-#define INSERT_ELEMENT(p) strings[p] = #p
-      INSERT_ELEMENT(cv_status_ex::timeout);
-      INSERT_ELEMENT(cv_status_ex::signaled);
-      INSERT_ELEMENT(cv_status_ex::predicate);
-#undef INSERT_ELEMENT
-    }
-
-    return out << strings[value];
-  }
-
-  std::ostream &operator<<(std::ostream &out, const cv_status value)
-  {
-    static std::map<cv_status, std::string> strings;
-    if (strings.size() == 0)
-    {
-#define INSERT_ELEMENT(p) strings[p] = #p
-      INSERT_ELEMENT(cv_status::timeout);
-      INSERT_ELEMENT(cv_status::no_timeout);
-#undef INSERT_ELEMENT
-    }
-
-    return out << strings[value];
-  }
-
-  /// condition_variable
+  /// condition_variable_ex
   class condition_variable_ex : public condition_variable
   {
   public:
@@ -60,7 +34,7 @@ namespace gecaib _GLIBCXX_VISIBILITY(default)
       using __dur = typename steady_clock::duration;
       return wait_until_ex(__lock,
                            steady_clock::now() +
-                               chrono::__detail::ceil<__dur>(__rtime),
+                               chrono::ceil<__dur>(__rtime),
                            __p);
     }
 
@@ -75,7 +49,7 @@ namespace gecaib _GLIBCXX_VISIBILITY(default)
       {
         using __dur = typename steady_clock::duration;
         const auto __s_atime = steady_clock::now() +
-                            chrono::__detail::ceil<__dur>(__pDuration) ;
+                            chrono::ceil<__dur>(__pDuration) ;
         cv_status status = wait_until(__lock, __s_atime);
         //cout << "wait done: " << status << " pred: " << __p() << endl;
         if (__p())
@@ -95,3 +69,5 @@ namespace gecaib _GLIBCXX_VISIBILITY(default)
     }
   };
 }
+
+#endif // _GECAIB_CONDITION_VARIABLE_EX
