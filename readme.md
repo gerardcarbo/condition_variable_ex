@@ -21,9 +21,12 @@ The method wait_until_ex has an additional `_pDuration` parameter which indicate
 
 ## Motivation
 
-Usually it's interesting to know if the wait has been abandoned because of the signal or because of the predicate. With the standard class it is no possible, as it only returns timeout/no_timeout.
+Sometimes it is interesting to know if the wait has been abandoned because of the signal or because of the predicate. With the standard class it is no possible, as it only returns timeout/no_timeout.
+
+One tipical case is a backgroud worker thread, a perennial worker thread that can be activaded by the main thread or others on demand or by a timeout.
 
 ## How to compile
 
-- For the library to compile the private members of condition_variable class must be made protected.
-- g++ 10 or greater needed.
+- As condition_variable_ex inherits from condition_variable, for the library to compile, the private members of condition_variable class must be declared protected. One modified copy is provided in the include folder.
+
+- C++17 or greater needed.

@@ -1,7 +1,7 @@
 #ifndef _GECAIB_CONDITION_VARIABLE_EX
 #define _GECAIB_CONDITION_VARIABLE_EX 1
 
-#include <condition_variable>
+#include "condition_variable" // Using local copy (protected) of condition_variable
 #include <map>
 
 using namespace std;
@@ -51,18 +51,31 @@ namespace gecaib _GLIBCXX_VISIBILITY(default)
         const auto __s_atime = steady_clock::now() +
                             chrono::ceil<__dur>(__pDuration) ;
         cv_status status = wait_until(__lock, __s_atime);
-        //cout << "wait done: " << status << " pred: " << __p() << endl;
+        auto _now = steady_clock::now();
+        //cout << "wait_until_ex: wait done: " << (status == cv_status::no_timeout ? "signaled" : "timeout") << " pred: " << __p() << endl;
+        if (status == cv_status::no_timeout)
+        { 
+          /*
+          cout << "wait_until_ex: atime: " << __atime.time_since_epoch().count() << endl ;
+          cout << "wait_until_ex:   now: " << _now.time_since_epoch().count() << endl;
+          cout << "wait_until_ex: exit signaled" << endl;
+          */
+          return cv_status_ex::signaled;
+        }
         if (__p())
         {
           return cv_status_ex::predicate;
         }
-        if (status == cv_status::no_timeout)
-        {
-          return cv_status_ex::signaled;
-        }
-        if (steady_clock::now() >= __atime)
+        if (_now >= __atime)
         {
           return cv_status_ex::timeout;
+        }
+        else {
+          /*
+          cout << "wait_until_ex: atime: " << __atime.time_since_epoch().count() << endl ;
+          cout << "wait_until_ex:   now: " << _now.time_since_epoch().count() << endl;
+          cout << "wait_until_ex: in loop" << endl;
+          */
         }
       }
       return cv_status_ex::predicate;
