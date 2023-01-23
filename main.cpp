@@ -53,7 +53,6 @@ std::mutex m_working;
 bool working = false;
 condition_variable_ex cv_working;
 bool started = false;
-std::mutex m_started;
 condition_variable_ex cv_started;
 bool awake_thread = false;
 
@@ -147,12 +146,20 @@ void bgnd_worker_thread(int timeout)
     auto predicate = []
     { return awake_thread; };
 
+    // simulate thread creation delay
+    auto th_start_delay = (int)(timeout / 2 * randd());
+    this_thread::sleep_for(chrono::milliseconds(th_start_delay));
+
     // notify thread started
-    CoutThread{} << "bgnd started" << endl;
-    std::unique_lock lk(m_started);
+    CoutThread{} << "bgnd started in " <<  th_start_delay << endl;
+    std::unique_lock lkw(m_working);
     started = true;
-    lk.unlock();
     cv_started.notify_all();
+
+    // simulate thread initialization delay
+    auto th_init_delay = (int)(timeout / 2 * randd());
+    this_thread::sleep_for(chrono::milliseconds(th_init_delay));
+    CoutThread{} << "bgnd initialized in " <<  th_init_delay << endl;
 
     // test distinct timeout relations
     auto th_timeout = timeout / 2;
@@ -161,7 +168,6 @@ void bgnd_worker_thread(int timeout)
         th_timeout = randd() * timeout;
     }
 
-    std::unique_lock lkw(m_working);
     while (true)
     {
         // wait with timeout and predicate
@@ -177,13 +183,17 @@ void bgnd_worker_thread(int timeout)
 
         // do some work
         CoutThread{} << "bgnd working" << endl;
-        this_thread::sleep_for(chrono::microseconds((int)(timeout / 2 * randd())));
+        this_thread::sleep_for(chrono::milliseconds((int)(timeout / 2 * randd())));
         awake_thread = false;
     }
 }
 
 int main(int n, char **args)
 {
+    /* Intializes random number generator */
+    time_t t;
+    srand((unsigned) time(&t));
+
     int type = atoi(args[1]);
     int repeat = atoi(args[2]);
     CoutThread{} << "test type: " << type << " num repeat: " << repeat << endl;
@@ -247,7 +257,7 @@ int main(int n, char **args)
             // wait for thread to be ready
             {
                 CoutThread{} << "main program waithing thread ready" << endl;
-                std::unique_lock lk(m_started);
+                std::unique_lock lk(m_working);
                 cv_started.wait(lk, [] { return started; });
             }
 
@@ -264,7 +274,7 @@ int main(int n, char **args)
                 if (randd() > .5)
                 {
                     // ..and some more work
-                    workTime = (int)(1 * loop_timeout * (randd()));
+                    workTime = (int)(loop_timeout * (randd()));
                     CoutThread{} << "main program do some more work " << workTime << "ms " << endl;
                     this_thread::sleep_for(chrono::milliseconds(workTime));
                 }

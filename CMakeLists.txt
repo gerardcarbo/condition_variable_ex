@@ -17,19 +17,19 @@ enable_testing()
 # define tests
 add_test(
     NAME test_timeout
-    COMMAND condition_variable_ex 1 100 0 100 150 200
+    COMMAND condition_variable_ex 1 10 0 100 150 200
 )
 set_tests_properties(test_timeout PROPERTIES TIMEOUT 30)     
     
 add_test(
     NAME test_signaled
-    COMMAND condition_variable_ex 1 100 1 200 100 150
+    COMMAND condition_variable_ex 1 10 1 200 100 150
 )
 set_tests_properties(test_signaled PROPERTIES TIMEOUT 30)  
     
 add_test(
     NAME test_predicate
-    COMMAND condition_variable_ex 1 100 2 200 150 100
+    COMMAND condition_variable_ex 1 10 2 200 150 100
 )
 set_tests_properties(test_predicate PROPERTIES TIMEOUT 30)    
 
