@@ -49,7 +49,9 @@ bool processed = false;
 cv_status_ex finalStatus;
 
 // bgnd working thread test stuff
+std::mutex m_working;
 bool working = false;
+condition_variable_ex cv_working;
 bool started = false;
 std::mutex m_started;
 condition_variable_ex cv_started;
@@ -159,13 +161,12 @@ void bgnd_worker_thread(int timeout)
         th_timeout = randd() * timeout;
     }
 
-    std::unique_lock lk(m);
+    std::unique_lock lkw(m_working);
     while (true)
     {
-
         // wait with timeout and predicate
         CoutThread{} << "bgnd sleeping for " << th_timeout << "ms " << endl;
-        finalStatus = cv.wait_for_ex(lk, chrono::milliseconds(th_timeout), predicate);
+        auto finalStatus = cv_working.wait_for_ex(lkw, chrono::milliseconds(th_timeout), predicate);
         if (finalStatus == cv_status_ex::signaled || !working)
         {
             CoutThread{} << "bgnd exitting thread. wait status: " << finalStatus << ". working: " << working << endl;
@@ -271,10 +272,10 @@ int main(int n, char **args)
 
             // stop and join thread
             CoutThread{} << "main program exiting" << endl;
-            std::unique_lock<std::mutex> lck(m);
+            std::unique_lock<std::mutex> lck(m_working);
             working = false;
             lck.unlock();
-            cv.notify_all();
+            cv_working.notify_all();
             CoutThread{} << "main waiting thread" << endl;
             bgnd_worker.join();
             CoutThread{} << "joined " << i << endl

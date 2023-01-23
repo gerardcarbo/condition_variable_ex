@@ -15,7 +15,6 @@ include_directories(include)
 enable_testing()
 
 # define tests
-#[[
 add_test(
     NAME test_timeout
     COMMAND condition_variable_ex 1 100 0 100 150 200
@@ -33,7 +32,6 @@ add_test(
     COMMAND condition_variable_ex 1 100 2 200 150 100
 )
 set_tests_properties(test_predicate PROPERTIES TIMEOUT 30)    
-]]
 
 add_test(
     NAME test_bgnd_thread_0

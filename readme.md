@@ -23,7 +23,62 @@ The method wait_until_ex has an additional `_pDuration` parameter which indicate
 
 Sometimes it is interesting to know if the wait has been abandoned because of the signal or because of the predicate. With the standard class it is no possible, as it only returns timeout/no_timeout.
 
-One tipical case is a backgroud worker thread, a perennial worker thread that can be activaded by the main thread or others on demand or by a timeout.
+One tipical case is a backgroud worker thread, a perennial worker thread that can be activaded by the main thread or others on demand or by a timeout:
+
+    std::mutex m_working;
+    bool working = false;
+    condition_variable_ex cv_working;
+    bool awake_thread = false;
+
+    void bgnd_worker_thread(int timeout)
+    {
+        // the predicate can depends on the main work
+        auto predicate = []
+        { return awake_thread; };
+
+        std::unique_lock lkw(m_working);
+        while (true)
+        {
+            // wait with timeout and predicate
+            CoutThread{} << "bgnd sleeping for " << th_timeout << "ms " << endl;
+            auto finalStatus = cv_working.wait_for_ex(lkw, chrono::milliseconds(th_timeout), predicate);
+            if (finalStatus == cv_status_ex::signaled || !working)
+            {
+                break;
+            }
+            
+            // do some work
+            ...
+
+            // reset the predicate
+            awake_thread = false;
+        }
+    }
+
+    void main() 
+    {
+        // start bgnd working thread
+        awake_thread = false;
+        working = true;
+        std::thread bgnd_worker(bgnd_worker_thread, loop_timeout);
+
+        ....
+
+        // activate bgnd thread
+        awake_thread = true;
+
+        ....
+
+        // stop and wait bgnd thread
+        std::unique_lock<std::mutex> lck(m_working);
+        working = false;
+        lck.unlock();
+        cv_working.notify_all();
+        bgnd_worker.join();
+
+        return;
+    }
+
 
 ## How to compile
 
